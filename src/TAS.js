@@ -4,11 +4,11 @@ class tas{
     this.slowdown = 2;
     this.pslowdown = 2;
     this.keybinds = {
-      SAVESTATE:75,//
-      LOADSTATE:76,//
-      SLOWDOWN:188,//
-      SPEEDUP:190,//
-      PLAYBACK:79,//
+      SAVESTATE:75,
+      LOADSTATE:76,
+      SLOWDOWN:188,
+      SPEEDUP:190,
+      PLAYBACK:79,
       PAUSE:80,
       FRAME_ADVANCE:186,
       SAVE_INPUTS:191
@@ -21,16 +21,6 @@ class tas{
     this.playback = false;
     this.state = {};
     this.vars = [];
-    this.keyPressed = [
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false
-    ]
     this.paused = false;
   }
   addVar(name){
@@ -58,6 +48,7 @@ class tas{
     if(keyIsDown(this.keybinds.PLAYBACK)){
       this.endState = this.savestate(this.vars);
       this.loadstate(this.initialState,['inputs']);
+      print(TAS.rng);
       this.pslowdown = this.slowdown;
       this.slowdown = 1;
       this.playback = true;
@@ -80,29 +71,22 @@ class tas{
       saveStrings([str],'inputs','tas');
     }
   }
-  savestate(vars){
+  savestate(vars,load){
     let state = {};
     for(let i = 0; i < vars.length; i++){
       if(typeof window[vars[i]] === "object"){
-        if(window[vars[i]].length !== undefined){
-          state[vars[i]] = [];
-          for(let v = 0; v < window[vars[i]].length; v++){
-            state[vars[i]][v] = window[vars[i]][v];
-          }
-        }else{
-          state[vars[i]] = {};
-          for(let k of Object.keys(window[vars[i]])){
-            state[vars[i]][k] = window[vars[i]][k];
-          }
-        }
+        state[vars[i]] = JSON.parse(JSON.stringify(window[vars[i]]));
       }else{
         state[vars[i]] = window[vars[i]];
       }
     }
     state.rng = new this.prng(this.rng.a,this.rng.b,this.rng.n);
     state.fc = fc;
-    print("State Saved!");
     state.inputs = JSON.parse(JSON.stringify(this.inputs));
+    print(state);
+    if(load){
+      this.loadstate(state);
+    }
     return state;
   }
   loadstate(state,exclusions){
@@ -132,7 +116,6 @@ class tas{
     }
   }
   setup(){
-    this.state = this.savestate(this.vars);
     if(this.settings.PIANO_ROLL){
       width/=2;
     }
@@ -144,6 +127,10 @@ class tas{
     this.resume = ()=>(loop());
   }
   update(){
+    if(!this.initialState){
+      this.initialState = this.savestate(this.vars,true);
+      this.state = this.savestate(this.vars,true);
+    }
     fc++;
     if(this.settings.PIANO_ROLL){
       fill(0);
@@ -212,9 +199,6 @@ class tas{
     if(this.paused){
       this.stop();
     }
-    if(!this.initialState){
-      this.initialState = this.savestate(this.vars);
-    }
   }
   addInputs(inputs){
     if(!this.playback){
@@ -250,4 +234,4 @@ TAS.prng = class{
 
 var fc = 0;
 
-TAS.rng = new TAS.prng(9835463214,4589753462,2869226925);
+TAS.rng = new TAS.prng(8493752097,3425792826,6254627752);

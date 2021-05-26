@@ -31,7 +31,8 @@ function draw() {
   if(fc%diff === 0){
     e.push({x:TAS.rng.random()*width,y:-10});
   }
-  if(fc%900 === 0){
+  if(fc%900 === 0 && fc !== 0){
+    print("Diff is going from "+diff+" to "+round(diff/2));
     diff/=2;
     diff = round(diff);
   }
