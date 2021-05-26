@@ -1,6 +1,6 @@
 # P5.TAS
 
-* [Getting Started](#GettingStarted)
+* [Getting Started](#Getting-Started)
 * [Docs](#Docs)
 * [Usage](#Usage)
 
