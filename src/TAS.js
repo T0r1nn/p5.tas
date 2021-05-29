@@ -20,6 +20,8 @@ class tas{
       MODIFY_WIDTH:true
     }
     this.setSlowdown = ((s)=>(frameRate(60/s)));
+    this.minSlowdown = 1;
+    this.maxSlowdown = 60;
     this.playback = false;
     this.states = [];
     this.menuOpen = false;
@@ -47,11 +49,11 @@ class tas{
     }
     if(keyIsDown(this.keybinds.SLOWDOWN)){
       this.slowdown *= 1.5;
-      this.slowdown = min(60,this.slowdown);
+      this.slowdown = min(this.maxSlowdown,this.slowdown);
     }
     if(keyIsDown(this.keybinds.SPEEDUP)){
       this.slowdown /= 1.5;
-      this.slowdown = max(1,this.slowdown);
+      this.slowdown = max(this.minSlowdown,this.slowdown);
     }
     if(keyIsDown(this.keybinds.PLAYBACK)){
       this.endState = this.savestate(this.vars,false,'End_State');
