@@ -54,7 +54,6 @@ class tas{
     if(keyIsDown(this.keybinds.PLAYBACK)){
       this.endState = this.savestate(this.vars,false,'End_State');
       this.loadstate(this.initialState,['inputs']);
-      print(TAS.rng);
       this.pslowdown = this.slowdown;
       this.slowdown = 1;
       this.playback = true;
@@ -89,7 +88,6 @@ class tas{
     state.rng = new this.prng(this.rng.a,this.rng.b,this.rng.n);
     state.fc = fc;
     state.inputs = JSON.parse(JSON.stringify(this.inputs)).slice(0,fc-1);
-    print(state);
     if(load){
       this.loadstate(state);
     }
@@ -127,7 +125,6 @@ class tas{
     this.rng.a = state.rng.a;
     this.rng.b = state.rng.b;
     this.rng.n = state.rng.n;
-    print("State Loaded!");
   }
   loadstateMenu(show){
     if(show){
@@ -255,7 +252,6 @@ TAS.prng = class{
   }
   random(m1,m2){
     this.n = (this.a*this.n+this.b)%this.m;
-    console.log("Random number gotten");
     if(m2 === undefined && m1 !== undefined){
       return m1*this.n/this.m;
     }else if(m2 !== undefined && m1 !== undefined){
