@@ -253,10 +253,16 @@ TAS.prng = class{
     this.a = a;
     this.n = n
   }
-  random(){
+  random(m1,m2){
     this.n = (this.a*this.n+this.b)%this.m;
-    console.log("Random number gotten")
-    return this.n/this.m;
+    console.log("Random number gotten");
+    if(m2 === undefined && m1 !== undefined){
+      return m1*this.n/this.m;
+    }else if(m2 !== undefined && m1 !== undefined){
+      return ((m2-m1)*this.n/this.m)+m1;
+    }else{
+      return this.n/this.m;
+    } 
   }
   update(){
     this.n = (this.a*this.n+this.b)%this.m;
