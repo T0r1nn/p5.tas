@@ -16,7 +16,8 @@ class tas{
     this.settings = {
       TYPE:"FRAME",
       READ_FILE:false,
-      PIANO_ROLL:false
+      PIANO_ROLL:false,
+      MODIFY_WIDTH:true
     }
     this.playback = false;
     this.states = [];
@@ -137,13 +138,16 @@ class tas{
       document.getElementById('states').innerHTML = '';
     }
   }
-  preload(){
+  loadFile(file){
     if(this.settings.READ_FILE){
-      this.inputs = loadStrings('inputs.tas');
+      this.inputs = loadStrings(file);
     }
   }
+  preload(){
+    this.loadFile('inputs.tas');
+  }
   setup(){
-    if(this.settings.PIANO_ROLL){
+    if(this.settings.PIANO_ROLL && this.settings.MODIFY_WIDTH){
       width/=2;
     }
     if(this.settings.READ_FILE){
