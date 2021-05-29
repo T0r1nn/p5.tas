@@ -8,7 +8,24 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   size = min(width/w,height/h);
   tetronimos.push(new tetronimo(possible[Math.floor(TAS.rng.random()*(possible.length))]));
-  stored = possible[Math.floor(TAS.rng.random()*(possible.length))]
+  print('from line 10.');
+  let order = [0,1,2,3,4,5,6];
+  for(let i = 0; i < 10; i++){
+    let o0 = Math.floor(TAS.rng.random()*possible.length);
+    print('from line 14');
+    let o1 = Math.floor(TAS.rng.random()*possible.length);
+    print('from line 16');
+    if(o0 === o1){
+      o1+=1;
+      o1%=7;
+    }
+    let temp = order[o0];
+    order[o0] = order[o1];
+    order[o1] = temp;
+  }
+  for(let i = 0; i < order.length; i++){
+    stored.push(possible[order[i]]);
+  }
   TAS.setup();
 }
 
@@ -29,8 +46,27 @@ let vars = ['speed','l','score','tetronimos','stored','totalLines'];
 
 function draw() {
   if(tetronimos.length === 0 || (tetronimos[0].down === true && tetronimos.length === 1)){
-    tetronimos.push(new tetronimo(stored));
-    stored = possible[Math.floor(TAS.rng.random()*(possible.length))]
+    tetronimos.push(new tetronimo(stored[0]));
+    stored.splice(0,1);
+    if(stored.length === 0){
+      let order = [0,1,2,3,4,5,6];
+      for(let i = 0; i < 10; i++){
+        let o0 = Math.floor(TAS.rng.random()*possible.length);
+        print('from line 54');
+        let o1 = Math.floor(TAS.rng.random()*possible.length);
+        print('from line 57');
+        if(o0 === o1){
+          o1+=1;
+          o1%=7;
+        }
+        let temp = order[o0];
+        order[o0] = order[o1];
+        order[o1] = temp;
+      }
+      for(let i = 0; i < order.length; i++){
+        stored.push(possible[order[i]]);
+      }
+    }
   }
   background(100);
   push();
@@ -44,20 +80,20 @@ function draw() {
   }
   for(let i = 0; i < tetronimos.length; i++){
     if(!tetronimos[i].update){
-      tetronimos[i].update = new tetronimo([]).update;
-      tetronimos[i].combine = new tetronimo([]).combine;
-      tetronimos[i].checkRow = new tetronimo([]).checkRow;
-      tetronimos[i].checkCollision = new tetronimo([]).checkCollision;
-      tetronimos[i].checkLeft = new tetronimo([]).checkLeft;
-      tetronimos[i].checkRight = new tetronimo([]).checkRight;
-      tetronimos[i].checkRotate = new tetronimo([]).checkRotate;
-      tetronimos[i].rotate = new tetronimo([]).rotate;
+      tetronimos[i].update = new tetronimo([],true).update;
+      tetronimos[i].combine = new tetronimo([],true).combine;
+      tetronimos[i].checkRow = new tetronimo([],true).checkRow;
+      tetronimos[i].checkCollision = new tetronimo([],true).checkCollision;
+      tetronimos[i].checkLeft = new tetronimo([],true).checkLeft;
+      tetronimos[i].checkRight = new tetronimo([],true).checkRight;
+      tetronimos[i].checkRotate = new tetronimo([],true).checkRotate;
+      tetronimos[i].rotate = new tetronimo([],true).rotate;
     }
     tetronimos[i].update();
   }
-  for(let i = 0; i < stored.length; i++){
+  for(let i = 0; i < stored[0].length; i++){
     fill(255);
-    rect(stored[i].x*size+9*size,-stored[i].y*size-10*size,size);
+    rect(stored[0][i].x*size+9*size,-stored[0][i].y*size-10*size,size);
   }
   pop();
   textAlign(LEFT,TOP);
@@ -71,9 +107,13 @@ function keyPressed(){
 }
 
 class tetronimo{
-  constructor(rects){
+  constructor(rects,skipCol){
     this.rects = [];
-    let col = [TAS.rng.random()*255,TAS.rng.random()*255,TAS.rng.random()*255];
+    let col = [255,255,255];
+    if(!skipCol){
+      col = [TAS.rng.random()*255,TAS.rng.random()*255,TAS.rng.random()*255];
+      print('from line 112'); 
+    }
     for(let i = 0; i < rects.length; i++){
       this.rects.push({x:rects[i].x,y:rects[i].y,col:col});
     }
@@ -129,7 +169,15 @@ class tetronimo{
       inputs.rotate = keyIsDown(87);
       inputs.down = keyIsDown(83);
       inputs.space = keyIsDown(32);
+      inputs.n = TAS.rng.n;
+      inputs.a = TAS.rng.a;
+      inputs.b = TAS.rng.b;
       TAS.addInputs(inputs);
+    }
+    if(TAS.playback){
+      if(TAS.getInput('n') !== TAS.rng.n){
+        print('Desync! Expected rng value '+TAS.getInput('n')+', got rng value '+TAS.rng.n+".",TAS.rng,'n:'+TAS.getInput('b'),'a:'+TAS.getInput('a'),'b:'+TAS.getInput('b'));
+      }
     }
     if(this.delete.length!==0){
       sort(this.delete);
@@ -145,6 +193,9 @@ class tetronimo{
       this.checkCollision();
       if(!this.down){
         this.y --;
+        if(down){
+          score++;
+        }
       }
       this.time-=1;
     }
@@ -217,7 +268,11 @@ class tetronimo{
             if(this.rects[r].x+this.x===tetronimos[i].rects[o].x+tetronimos[i].x&&this.rects[r].y-1+this.y===tetronimos[i].rects[o].y+tetronimos[i].y){
               this.down = true;
               if(this.y >= 20){
-                noLoop();
+                l = 0;
+                totalLines = 0;
+                score = 0;
+                tetronimos = [];
+                return;
               }
               if(tetronimos[0]!==this){
                 tetronimos[0].combine(this);

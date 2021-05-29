@@ -25,7 +25,8 @@ function keyPressed(){
 }
 
 function draw() {
-  score+=round(30/diff).toFixed(0)*1;
+  let up = (keyIsDown(87)&&!TAS.playback)||TAS.getInput('u');
+  score+=round(30/diff).toFixed(0)*(up?3:1);
   background(220);
   noStroke();
   if(fc%diff === 0){
@@ -48,7 +49,7 @@ function draw() {
   circle(px,py,width/30);
   for(let i = 0; i < e.length; i++){
     let enemy = e[i];
-    enemy.y+=2*((keyIsDown(87)||TAS.getInput('u'))?2:1);
+    enemy.y+=2*(((keyIsDown(87)&&!TAS.playback)||TAS.getInput('u'))?2:1);
     if(enemy.y>=height){
       deleted.push(i);
     }

@@ -19,7 +19,8 @@ class tas{
       PIANO_ROLL:false
     }
     this.playback = false;
-    this.state = {};
+    this.states = [];
+    this.menuOpen = false;
     this.vars = [];
     this.paused = false;
   }
@@ -32,10 +33,15 @@ class tas{
   }
   onKeyPressed(){
     if(keyIsDown(this.keybinds.SAVESTATE)){
-      this.state = this.savestate(this.vars);
+      this.states.push(this.savestate(this.vars));
+      if(this.menuOpen){
+        this.loadstateMenu(false);
+        this.loadstateMenu(true);
+      }
     }
     if(keyIsDown(this.keybinds.LOADSTATE)){
-      this.loadstate(this.state);
+      this.loadstateMenu(!this.menuOpen);
+      this.menuOpen = !this.menuOpen;
     }
     if(keyIsDown(this.keybinds.SLOWDOWN)){
       this.slowdown *= 1.5;
@@ -46,7 +52,7 @@ class tas{
       this.slowdown = max(1,this.slowdown);
     }
     if(keyIsDown(this.keybinds.PLAYBACK)){
-      this.endState = this.savestate(this.vars);
+      this.endState = this.savestate(this.vars,false,'End_State');
       this.loadstate(this.initialState,['inputs']);
       print(TAS.rng);
       this.pslowdown = this.slowdown;
@@ -71,7 +77,7 @@ class tas{
       saveStrings([str],'inputs','tas');
     }
   }
-  savestate(vars,load){
+  savestate(vars,load,name){
     let state = {};
     for(let i = 0; i < vars.length; i++){
       if(typeof window[vars[i]] === "object"){
@@ -82,10 +88,15 @@ class tas{
     }
     state.rng = new this.prng(this.rng.a,this.rng.b,this.rng.n);
     state.fc = fc;
-    state.inputs = JSON.parse(JSON.stringify(this.inputs));
+    state.inputs = JSON.parse(JSON.stringify(this.inputs)).slice(0,fc-1);
     print(state);
     if(load){
       this.loadstate(state);
+    }
+    if(name!==undefined){
+      state.name = name;
+    }else{
+      state.name = prompt("Enter a name for the savestate").replace(/\s/g,"_");
     }
     return state;
   }
@@ -93,8 +104,16 @@ class tas{
     if(exclusions === undefined){
       exclusions = [];
     }
+    if(typeof state === 'string'){
+      for(let i = 0; i < this.states.length; i++){
+        if(this.states[i].name === state){
+          state = this.states[i];
+          break;
+        }
+      }
+    }
     for(let k of Object.keys(state)){
-      if(k !== 'rng' && k !== 'inputs' && exclusions.indexOf(k)===-1){
+      if(k !== 'rng' && k !== 'name' && k !== 'inputs' && exclusions.indexOf(k)===-1){
         if(typeof state[k] === 'object'){
           window[k] = JSON.parse(JSON.stringify(state[k]))
         }else{
@@ -109,6 +128,17 @@ class tas{
     this.rng.b = state.rng.b;
     this.rng.n = state.rng.n;
     print("State Loaded!");
+  }
+  loadstateMenu(show){
+    if(show){
+      let elements = '<ul id="states">';
+      for(let i = 0; i < this.states.length; i++){
+        elements += '<li class="state"><button onclick=TAS.loadstate(\''+this.states[i].name+'\')>'+this.states[i].name+'</button></li>';
+      }
+      document.getElementById('states').innerHTML+=elements+"</ul>";
+    }else{
+      document.getElementById('states').innerHTML = '';
+    }
   }
   preload(){
     if(this.settings.READ_FILE){
@@ -128,8 +158,8 @@ class tas{
   }
   update(){
     if(!this.initialState){
-      this.initialState = this.savestate(this.vars,true);
-      this.state = this.savestate(this.vars,true);
+      this.initialState = this.savestate(this.vars,true,'');
+      this.states[0] = this.savestate(this.vars,true,'Initial');
     }
     fc++;
     if(this.settings.PIANO_ROLL){
@@ -225,6 +255,7 @@ TAS.prng = class{
   }
   random(){
     this.n = (this.a*this.n+this.b)%this.m;
+    console.log("Random number gotten")
     return this.n/this.m;
   }
   update(){
