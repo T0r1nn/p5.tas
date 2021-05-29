@@ -19,6 +19,7 @@ class tas{
       PIANO_ROLL:false,
       MODIFY_WIDTH:true
     }
+    this.setSlowdown = ((s)=>(frameRate(60/s)));
     this.playback = false;
     this.states = [];
     this.menuOpen = false;
@@ -221,7 +222,7 @@ class tas{
       noStroke();
     }
     if(this.settings.TYPE === "FRAME"){
-      frameRate(60/this.slowdown);
+      this.setSlowdown(this.slowdown);
     }
     if(this.playback && !this.inputs[fc]){
       this.playback = false;
