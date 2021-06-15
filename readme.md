@@ -46,6 +46,11 @@ inputs.wPressed = 87;
 
 Copy everything that uses the inputs and replace the input in the copy with TAS.getInput(inputName), where inputName is that name of the input in string form(For example, mouseX, mouseY, mouseDown, or wPressed). Then, add if(!TAS.playback) surrounding the original so that people can only input if the TAS is not playing back.
 
+Next, in your html file, add the following bit inside the body tag:
+```html
+<div id="states"></div>
+```
+
 Next, replace every frameCount with fc, and every random with TAS.rng.random. Finally, to make savestates and loadstates work, in the setup function, before TAS.setup(), add TAS.vars, and set it equal to a list of every variable that needs to be saved and loaded in savestates.
 
 # Docs
@@ -79,6 +84,11 @@ TAS.keybinds.SPEEDUP = 190;
 ```
 
 ### settings
+
+The settings object works almost exactly the same as the keybinds object. Settings control the way p5.tas works and looks. A full list of settings and possible values can be seen below:
+
+* TAS.settings.READ_FILE
+  * 
 
 ### vars
 

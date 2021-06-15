@@ -1,19 +1,13 @@
-function preload(){
-  TAS.settings.PIANO_ROLL = true;
-  TAS.preload();
-}
-
 function setup() {
-  TAS.vars = vars;
   createCanvas(windowWidth, windowHeight);
   size = min(width/w,height/h);
-  tetronimos.push(new tetronimo(possible[Math.floor(TAS.rng.random()*(possible.length))]));
+  tetronimos.push(new tetronimo(possible[Math.floor(random()*(possible.length))]));
   print('from line 10.');
   let order = [0,1,2,3,4,5,6];
   for(let i = 0; i < 10; i++){
-    let o0 = Math.floor(TAS.rng.random()*possible.length);
+    let o0 = Math.floor(random()*possible.length);
     print('from line 14');
-    let o1 = Math.floor(TAS.rng.random()*possible.length);
+    let o1 = Math.floor(random()*possible.length);
     print('from line 16');
     if(o0 === o1){
       o1+=1;
@@ -26,7 +20,6 @@ function setup() {
   for(let i = 0; i < order.length; i++){
     stored.push(possible[order[i]]);
   }
-  TAS.setup();
 }
 
 let size;
@@ -51,9 +44,9 @@ function draw() {
     if(stored.length === 0){
       let order = [0,1,2,3,4,5,6];
       for(let i = 0; i < 10; i++){
-        let o0 = Math.floor(TAS.rng.random()*possible.length);
+        let o0 = Math.floor(random()*possible.length);
         print('from line 54');
-        let o1 = Math.floor(TAS.rng.random()*possible.length);
+        let o1 = Math.floor(random()*possible.length);
         print('from line 57');
         if(o0 === o1){
           o1+=1;
@@ -99,11 +92,6 @@ function draw() {
   textAlign(LEFT,TOP);
   fill(0);
   text("Score: "+score+"\nLevel: "+l,0,0);
-  TAS.update();
-}
-
-function keyPressed(){
-  TAS.onKeyPressed();
 }
 
 class tetronimo{
@@ -111,7 +99,7 @@ class tetronimo{
     this.rects = [];
     let col = [255,255,255];
     if(!skipCol){
-      col = [TAS.rng.random()*255,TAS.rng.random()*255,TAS.rng.random()*255];
+      col = [random()*255,random()*255,random()*255];
       print('from line 112'); 
     }
     for(let i = 0; i < rects.length; i++){
@@ -169,15 +157,6 @@ class tetronimo{
       inputs.rotate = keyIsDown(87);
       inputs.down = keyIsDown(83);
       inputs.space = keyIsDown(32);
-      inputs.n = TAS.rng.n;
-      inputs.a = TAS.rng.a;
-      inputs.b = TAS.rng.b;
-      TAS.addInputs(inputs);
-    }
-    if(TAS.playback){
-      if(TAS.getInput('n') !== TAS.rng.n){
-        print('Desync! Expected rng value '+TAS.getInput('n')+', got rng value '+TAS.rng.n+".",TAS.rng,'n:'+TAS.getInput('b'),'a:'+TAS.getInput('a'),'b:'+TAS.getInput('b'));
-      }
     }
     if(this.delete.length!==0){
       sort(this.delete);
@@ -186,7 +165,7 @@ class tetronimo{
         this.rects.splice(this.delete[i],1);
       }
     }
-    let down = (keyIsDown(83)&&!TAS.playback)||TAS.getInput('down');
+    let down = keyIsDown(83)
     this.time += (down?max(0.5,speed):speed);
     this.delete = [];
     while(this.time>1&&!this.down){
@@ -199,7 +178,7 @@ class tetronimo{
       }
       this.time-=1;
     }
-    let space = ((keyIsDown(32)&&!TAS.playback)||TAS.getInput("space"));
+    let space = keyIsDown(32)
     if(space && !spacePressed && !this.down){
       spacePressed = true;
       while(!this.down){
@@ -212,7 +191,7 @@ class tetronimo{
       spacePressed = false;
     }
     this.checkRow();
-    let left = ((keyIsDown(65)&&!TAS.playback)||TAS.getInput("left"));
+    let left = keyIsDown(65)
     if(left && !this.down && !this.leftPressed){
       if(this.checkLeft()){
         this.x--;
@@ -221,7 +200,7 @@ class tetronimo{
     }else if(!left){
       this.leftPressed = false;
     }
-    let right = ((keyIsDown(68)&&!TAS.playback)||TAS.getInput("right"))
+    let right = keyIsDown(68)
     if(right && !this.down && !this.rightPressed){
       if(this.checkRight()){
         this.x++;
@@ -230,7 +209,7 @@ class tetronimo{
     }else if(!right){
       this.rightPressed = false;
     }
-    let rotate = ((keyIsDown(87)&&!TAS.playback)||TAS.getInput('rotate'));
+    let rotate = keyIsDown(87)
     if(rotate && !this.down && !this.upPressed){
       if(this.checkRotate()){
         this.rotate();

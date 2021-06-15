@@ -1,7 +1,10 @@
 function preload(){
   TAS.settings.PIANO_ROLL = true;
-  TAS.preload();
-  TAS.vars = ['px','py','e','diff','inputs','score'];
+  TAS.addVar('px');
+  TAS.addVar('py');
+  TAS.addVar('e');
+  TAS.addVar('diff');
+  TAS.addVar('score');
 }
 
 function setup() {

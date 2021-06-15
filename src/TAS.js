@@ -3,6 +3,7 @@ class tas{
     this.inputs = [];
     this.slowdown = 2;
     this.pslowdown = 2;
+    this.prevState = {};
     this.keybinds = {
       SAVESTATE:75,
       LOADSTATE:76,
@@ -11,13 +12,11 @@ class tas{
       PLAYBACK:79,
       PAUSE:80,
       FRAME_ADVANCE:186,
-      SAVE_INPUTS:191
+      SAVE_INPUTS:191,
+      UNDO:73
     }
     this.settings = {
-      TYPE:"FRAME",
-      READ_FILE:false,
-      PIANO_ROLL:false,
-      MODIFY_WIDTH:true
+      READ_FILE:false
     }
     this.setSlowdown = ((s)=>(frameRate(60/s)));
     this.minSlowdown = 1;
@@ -27,36 +26,59 @@ class tas{
     this.menuOpen = false;
     this.vars = [];
     this.paused = false;
+    this.config = {};
+  }
+  configureInput(inputName,settings){
+    this.config[inputName] = settings;
+  }
+  input(input,inputName){
+    if(this.playback){
+      return TAS.getInput(inputName);
+    }else{
+      return input;
+    }
   }
   addVar(name){
-    if(window[name]!==undefined){
-      this.vars.push(name);
+    if(typeof name === 'string'){
+      if(window[name]!==undefined){
+        this.vars.push(name);
+      }else{
+        throw "TasNameError, variable "+name+" is not defined correctly.";
+      }
+    }else if(typeof name === 'object' && name.length !==undefined){
+      for(let n of name){
+        if(window[n]!==undefined){
+          this.vars.push(n);
+        }else{
+          throw "TasNameError, variable "+n+" is not defined correctly.";
+        }
+      }
     }else{
-      throw "TasNameError, variable "+name+" is not defined correctly.";
+      throw "TasNameError, "+name+" is not an array or a string.";
     }
   }
   onKeyPressed(){
-    if(keyIsDown(this.keybinds.SAVESTATE)){
-      this.states.push(this.savestate(this.vars));
+    if(keyIsDown(this.keybinds.SAVESTATE,true)){
+      this.states.push(this.savestate());
       if(this.menuOpen){
         this.loadstateMenu(false);
         this.loadstateMenu(true);
       }
     }
-    if(keyIsDown(this.keybinds.LOADSTATE)){
+    if(keyIsDown(this.keybinds.LOADSTATE,true)){
       this.loadstateMenu(!this.menuOpen);
       this.menuOpen = !this.menuOpen;
     }
-    if(keyIsDown(this.keybinds.SLOWDOWN)){
+    if(keyIsDown(this.keybinds.SLOWDOWN,true)){
       this.slowdown *= 1.5;
       this.slowdown = min(this.maxSlowdown,this.slowdown);
     }
-    if(keyIsDown(this.keybinds.SPEEDUP)){
+    if(keyIsDown(this.keybinds.SPEEDUP,true)){
       this.slowdown /= 1.5;
       this.slowdown = max(this.minSlowdown,this.slowdown);
     }
-    if(keyIsDown(this.keybinds.PLAYBACK)){
-      this.endState = this.savestate(this.vars,false,'End_State');
+    if(keyIsDown(this.keybinds.PLAYBACK,true)){
+      this.endState = this.savestate(false,'End_State');
       this.loadstate(this.initialState,['inputs']);
       this.pslowdown = this.slowdown;
       this.slowdown = 1;
@@ -79,17 +101,15 @@ class tas{
       this.inputs.forEach((v)=>(str+=v+"\n"));
       saveStrings([str],'inputs','tas');
     }
-  }
-  savestate(vars,load,name){
-    let state = {};
-    for(let i = 0; i < vars.length; i++){
-      if(typeof window[vars[i]] === "object"){
-        state[vars[i]] = JSON.parse(JSON.stringify(window[vars[i]]));
-      }else{
-        state[vars[i]] = window[vars[i]];
+    if(keyIsDown(this.keybinds.UNDO)){
+      if(this.inputs.length > 1){
+        this.loadstate(this.prevState);
       }
     }
-    state.rng = new this.prng(this.rng.a,this.rng.b,this.rng.n);
+  }
+  savestate(load,name){
+    let state = JSON.parse(JSON.stringify(window,replacer));
+    state.rng = new this.prng(this.rng.mw,this.rng.mz);
     state.fc = fc;
     state.inputs = JSON.parse(JSON.stringify(this.inputs)).slice(0,fc-1);
     if(load){
@@ -115,7 +135,7 @@ class tas{
       }
     }
     for(let k of Object.keys(state)){
-      if(k !== 'rng' && k !== 'name' && k !== 'inputs' && exclusions.indexOf(k)===-1){
+      if(k !== 'rng' && k !== 'name' && k !== 'inputs' && exclusions.indexOf(k)===-1&&k!=="document" && k!=="customElements" && k!=="history" && k!=="closed" && k!=="frameElement"){
         if(typeof state[k] === 'object'){
           window[k] = JSON.parse(JSON.stringify(state[k]))
         }else{
@@ -126,19 +146,31 @@ class tas{
     if(exclusions.indexOf('inputs')==-1){
       this.inputs = JSON.parse(JSON.stringify(state.inputs));
     }
-    this.rng.a = state.rng.a;
-    this.rng.b = state.rng.b;
-    this.rng.n = state.rng.n;
+    this.rng.mw = state.rng.mw;
+    this.rng.mz = state.rng.mz;
   }
   loadstateMenu(show){
     if(show){
-      let elements = '<ul id="states">';
+      let elements = `<ul id="states">`
       for(let i = 0; i < this.states.length; i++){
-        elements += '<li class="state"><button onclick=TAS.loadstate(\''+this.states[i].name+'\')>'+this.states[i].name+'</button></li>';
+        elements += `<li class="state"><button onclick=TAS.loadstate("${this.states[i].name}")>${this.states[i].name}</button><button onclick=TAS.deletestate("${this.states[i].name}")>delete</button></li>`;
       }
       document.getElementById('states').innerHTML+=elements+"</ul>";
     }else{
       document.getElementById('states').innerHTML = '';
+    }
+  }
+  deletestate(state){
+    if(state === 'Initial'){
+      return;
+    }
+    for(let i = 0; i < this.states.length; i++){
+      if(this.states[i].name === state){
+        this.states.splice(i,1);
+        this.loadstateMenu(false);
+        this.loadstateMenu(true);
+        return;
+      }
     }
   }
   loadFile(file){
@@ -150,9 +182,6 @@ class tas{
     this.loadFile('inputs.tas');
   }
   setup(){
-    if(this.settings.PIANO_ROLL && this.settings.MODIFY_WIDTH){
-      width/=2;
-    }
     if(this.settings.READ_FILE){
       this.inputs.splice(this.inputs.length-2,2);
       this.playback = true;
@@ -162,70 +191,13 @@ class tas{
   }
   update(){
     if(!this.initialState){
-      this.initialState = this.savestate(this.vars,true,'');
-      this.states[0] = this.savestate(this.vars,true,'Initial');
+      this.initialState = this.savestate(true,'');
+      this.prevState = this.savestate(true,'');
+      this.states[0] = this.savestate(true,'Initial');
     }
     fc++;
-    if(this.settings.PIANO_ROLL){
-      fill(0);
-      rect(width,0,width,height);
-      fill(255);
-      rect(width,height-height/10,width,height/10);
-      fill(0);
-      textAlign(CENTER,CENTER);
-      let i = 0;
-      if(this.inputs[0]){
-        for(let k of Object.keys(JSON.parse(this.inputs[0]))){
-          noStroke();
-          text(k,width+i*width/(Object.keys(JSON.parse(this.inputs[0])).length)+width/(2*(Object.keys(JSON.parse(this.inputs[0])).length)),height-height/20);
-          stroke(0);
-          line(width + i*width/(Object.keys(JSON.parse(this.inputs[0])).length),0,width + i*width/(Object.keys(JSON.parse(this.inputs[0])).length),height);
-          stroke(255);
-          line(width + i*width/(Object.keys(JSON.parse(this.inputs[0])).length),0,width + i*width/(Object.keys(JSON.parse(this.inputs[0])).length),height-height/10);
-          i++;
-        }
-      }
-      stroke(0);
-      if(this.playback){
-        for(let i = 0; i < min((9*height/10)/(width/16),this.inputs.length-fc); i++){
-          stroke(255);
-          line(width,height-i*width/16-width/16-height/10,width*2,height-i*width/16-width/16-height/10);
-          noStroke();
-          fill(0,0,255);
-          if(this.inputs[i+fc]){
-            let obj = JSON.parse(this.inputs[i+fc]);
-            let ks = 0;
-            for(let k of Object.keys(obj)){
-              if(obj[k]){
-                rect(width+ks*width/Object.keys(obj).length,height-i*width/16-height/10-width/16,width/Object.keys(obj).length,width/16);
-              }
-              ks++;
-            }
-          }
-        }
-      }else{
-        for(let i = this.inputs.length-1; i >= max(this.inputs.length-(9*height/10)/(width/16)-1,0); i--){
-          stroke(255);
-          line(width,height-(this.inputs.length-i-1)*width/16-width/16-height/10,width*2,height-(this.inputs.length-i-1)*width/16-width/16-height/10);
-          noStroke();
-          fill(0,0,255);
-          if(this.inputs[i]){
-            let obj = JSON.parse(this.inputs[i]);
-            let ks = 0;
-            for(let k of Object.keys(obj)){
-              if(obj[k]){
-                rect(width+ks*width/Object.keys(obj).length,height-(this.inputs.length-i-1)*width/16-height/10-width/16,width/Object.keys(obj).length,width/16);
-              }
-              ks++;
-            }
-          }
-        }
-      }
-      noStroke();
-    }
-    if(this.settings.TYPE === "FRAME"){
-      this.setSlowdown(this.slowdown);
-    }
+    this.getInputs();
+    this.setSlowdown(this.slowdown);
     if(this.playback && !this.inputs[fc]){
       this.playback = false;
       this.slowdown = this.pslowdown;
@@ -234,8 +206,20 @@ class tas{
       this.stop();
     }
   }
+  getInputs(){
+    let inputs = JSON.parse(JSON.stringify(p5.instance._downKeys));
+    for(let i = 0; i < 300; i++){
+      if(inputs[i] === undefined){
+        inputs[i] = keyIsDown(i);
+      }
+    }
+    inputs["mouseX"] = mouseX;
+    inputs["mouseY"] = mouseY;
+    this.addInputs(inputs);
+  }
   addInputs(inputs){
     if(!this.playback){
+      this.prevState = this.savestate(false,'Input '+fc);
       this.inputs.push(JSON.stringify(inputs));
     }
   }
@@ -251,27 +235,105 @@ class tas{
 let TAS = new tas();
 
 TAS.prng = class{
-  constructor(a,b,n){
-    this.m = 0b11111111111111111111111111111111
-    this.b = b;
-    this.a = a;
-    this.n = n
+  constructor(seed,mz){
+    this.mz = 1234567890;
+    if(mz){
+      this.mz = mz;
+    }
+    this.mw = seed;
   }
   random(m1,m2){
-    this.n = (this.a*this.n+this.b)%this.m;
-    if(m2 === undefined && m1 !== undefined){
-      return m1*this.n/this.m;
-    }else if(m2 !== undefined && m1 !== undefined){
-      return ((m2-m1)*this.n/this.m)+m1;
-    }else{
-      return this.n/this.m;
-    } 
+    let mz = this.mz;
+    let mw = this.mw;
+    mz = ((mz & 0xffff) * 36969 + (mz >> 16)) & 0xffffffff;
+    mw = ((mw & 0xffff) * 18000 + (mw >> 16)) & 0xffffffff;
+
+    this.mz = mz;
+    this.mw = mw;
+
+    const x = (((mz << 16) + mw) & 0xffffffff) / 0x100000000;
+    let result = 0.5+x;
+    if(m1 !== undefined && m2 === undefined){
+      if(typeof m1 === 'object'){
+        return m1[Math.floor(result*m1.length)];
+      }else{
+        return result * m1;
+      }
+    }else if(m1 !== undefined && m2 !== undefined){
+      return result * (m2-m1) + m1;
+    }else if(m1 == undefined && m2 == undefined){
+      return result;
+    }
   }
   update(){
-    this.n = (this.a*this.n+this.b)%this.m;
+    let mz = this.mz;
+    let mw = this.mw;
+    mz = ((mz & 0xffff) * 36969 + (mz >> 16)) & 0xffffffff;
+    mw = ((mw & 0xffff) * 18000 + (mw >> 16)) & 0xffffffff;
+
+    this.mz = mz;
+    this.mw = mw;
+    frameCount = fc-1;
   }
 }
 
-var fc = 0;
 
-TAS.rng = new TAS.prng(8493752097,3425792826,6254627752);
+var fc = 0;
+let seed = prompt("Input any number")*1;
+if(isNaN(seed)){
+  seed = Math.round(Math.random()*10000000);
+}
+TAS.rng = new TAS.prng(seed);
+
+function bind(){
+  p5.prototype.random = function(){return TAS.rng.random.apply(TAS.rng,arguments)};
+  if(p5.instance){
+    if(window.draw){
+      let temp = draw.toString();
+      temp = temp.replace(/function draw.*(.*).*{.*\n/,"");
+      temp = temp.slice(0,temp.length-2);
+      temp+="\n  TAS.update();";
+      draw = function(){
+        eval(temp);
+      }
+    }
+    if(window.keyPressed){
+      let temp = keyPressed.toString();
+      temp = temp.replace(/function keyPressed.*(.*).*{.*\n/,"");
+      temp = temp.slice(0,temp.length-2);
+      temp+="\n  TAS.onKeyPressed();";
+      keyPressed = function(){
+        eval(temp);
+      }
+    }else{
+      window.keyPressed = function(){
+        TAS.onKeyPressed();
+      }
+    }
+    TAS.setup();
+    keyIsDown = function(code,bypass){
+      if(!TAS.playback || bypass){
+        p5._validateParameters('keyIsDown', arguments);
+        return p5.instance._downKeys[code] || false;
+      }else{
+        p5._validateParameters('keyIsDown',arguments);
+        return TAS.getInput(code);
+      }
+    }
+  }else{
+    setTimeout(bind,1);
+  }
+}
+
+function replacer(key,value)
+{
+  if (key==="window" || key==="self" || key==="frames" || key==="top" || key==="parent" || key==="_preloadMethods" || key==="_curElement" || key==="_elements" || key==="_renderer") return undefined;
+  if(Object.getOwnPropertyDescriptor(window,key)){
+    if(!Object.getOwnPropertyDescriptor(window,key)['writable']){
+      return undefined;
+    }
+  }
+  return value;
+}
+
+bind();
