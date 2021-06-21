@@ -2,13 +2,10 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   size = min(width/w,height/h);
   tetronimos.push(new tetronimo(possible[Math.floor(random()*(possible.length))]));
-  print('from line 10.');
   let order = [0,1,2,3,4,5,6];
   for(let i = 0; i < 10; i++){
     let o0 = Math.floor(random()*possible.length);
-    print('from line 14');
     let o1 = Math.floor(random()*possible.length);
-    print('from line 16');
     if(o0 === o1){
       o1+=1;
       o1%=7;
@@ -45,9 +42,7 @@ function draw() {
       let order = [0,1,2,3,4,5,6];
       for(let i = 0; i < 10; i++){
         let o0 = Math.floor(random()*possible.length);
-        print('from line 54');
         let o1 = Math.floor(random()*possible.length);
-        print('from line 57');
         if(o0 === o1){
           o1+=1;
           o1%=7;
@@ -100,7 +95,6 @@ class tetronimo{
     let col = [255,255,255];
     if(!skipCol){
       col = [random()*255,random()*255,random()*255];
-      print('from line 112'); 
     }
     for(let i = 0; i < rects.length; i++){
       this.rects.push({x:rects[i].x,y:rects[i].y,col:col});
@@ -121,7 +115,6 @@ class tetronimo{
         try{
           rows[this.rects[i].y+this.y].push(this.rects[i]);
         }catch(e){
-          print(rows,this.rects[i].y+this.y);
           throw e;
         }
       }
@@ -134,9 +127,6 @@ class tetronimo{
           deletedRows++;
         }else{
           for(let r = 0; r < rows[i].length; r++){
-            if(this.rects.indexOf(rows[i][r])===-1){
-              print("Bad",rows,rows[i],rows[i][r],i,r);
-            }
             this.rects[this.rects.indexOf(rows[i][r])].y-=deletedRows;
           }
         }
@@ -160,7 +150,6 @@ class tetronimo{
     }
     if(this.delete.length!==0){
       sort(this.delete);
-      print(this.delete);
       for(let i = this.delete.length-1; i >= 0; i--){
         this.rects.splice(this.delete[i],1);
       }

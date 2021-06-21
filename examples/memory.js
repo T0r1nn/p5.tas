@@ -15,14 +15,6 @@ let minY = 50;
 let maxY = 500;
 let minX = 0;
 let maxX = 600;
-let vars = ['score','len','x','y','overlap','mouseDown'];
-
-function preload(){
-  TAS.settings.PIANO_ROLL = true;
-  TAS.vars = vars;
-  TAS.configureInput('mouseX',{min:0,max:600});
-  TAS.configureInput('mouseY',{min:0,max:500});
-}
 
 function setup() {
   if(getItem("chimpHS")!=undefined&&getItem("chimpHS")!=null){
@@ -31,10 +23,9 @@ function setup() {
   
   createCanvas(1200, 500);
   for(i=0;i<len;i++){
-  x.push(TAS.rng.random(minX+size/2,width-size/2-(width-maxX)));
-  y.push(TAS.rng.random(minY+size/2,height-size/2-(height-maxY)));
+  x.push(random(minX+size/2,width-size/2-(width-maxX)));
+  y.push(random(minY+size/2,height-size/2-(height-maxY)));
   }
-  TAS.setup();
 }
 
 function gameOver(){
@@ -48,8 +39,8 @@ function gameOver(){
   size = 60;
   mouseDown = false;
   for(i=0;i<len;i++){
-  x.push(TAS.rng.random(minX+size/2,width-size/2-(width-maxX)));
-  y.push(TAS.rng.random(minY+size/2,height-size/2-(height-maxY)));
+  x.push(random(minX+size/2,width-size/2-(width-maxX)));
+  y.push(random(minY+size/2,height-size/2-(height-maxY)));
   }
 }
 
@@ -119,18 +110,12 @@ function draw() {
     y = [];
     curr = 0;
     for(i=0;i<len;i++){
-  x.push(TAS.rng.random(minX+size/2,width-size/2-(width-maxX)));
-  y.push(TAS.rng.random(minY+size/2,height-size/2-(height-maxY)));
+  x.push(random(minX+size/2,width-size/2-(width-maxX)));
+  y.push(random(minY+size/2,height-size/2-(height-maxY)));
   }
   }
   
   text("Score: "+score,530,30);
   text("Highscore: "+highscore,90,30);
   rectMode(CORNER);
-  TAS.addInputs({mouseX:mouseX,mouseY:mouseY,mouseIsPressed:mouseIsPressed});
-  TAS.update();
-}
-
-function keyPressed(){
-  TAS.onKeyPressed();
 }

@@ -215,6 +215,7 @@ class tas{
     }
     inputs["mouseX"] = mouseX;
     inputs["mouseY"] = mouseY;
+    inputs["mousePressed"] = mouseIsPressed;
     this.addInputs(inputs);
   }
   addInputs(inputs){
