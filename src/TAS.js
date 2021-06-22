@@ -364,6 +364,11 @@ function deepClone(obj) {
             cloneObject[i] = clone(item[i]);
           }
         }
+        try{
+        if(item.__proto__){
+          cloneObject["__proto__"] = item.__proto__;
+        }
+        }catch(e){}
         return cloneObject;
       } else {
         return clonedCopy[visitedNodes.indexOf(item)];
