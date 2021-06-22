@@ -66,16 +66,6 @@ function draw() {
     }
   }
   for (let i = 0; i < tetronimos.length; i++) {
-    if (!tetronimos[i].update) {
-      tetronimos[i].update = new tetronimo([], true).update;
-      tetronimos[i].combine = new tetronimo([], true).combine;
-      tetronimos[i].checkRow = new tetronimo([], true).checkRow;
-      tetronimos[i].checkCollision = new tetronimo([], true).checkCollision;
-      tetronimos[i].checkLeft = new tetronimo([], true).checkLeft;
-      tetronimos[i].checkRight = new tetronimo([], true).checkRight;
-      tetronimos[i].checkRotate = new tetronimo([], true).checkRotate;
-      tetronimos[i].rotate = new tetronimo([], true).rotate;
-    }
     tetronimos[i].update();
   }
   for (let i = 0; i < stored[0].length; i++) {

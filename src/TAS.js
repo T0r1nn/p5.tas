@@ -303,7 +303,8 @@ function bind() {
   if (p5.instance) {
     if (window.draw) {
       let temp = draw.toString();
-      temp = temp.replace(/function draw.*(.*).*{.*\n/, "");
+      temp = temp.replace(/function draw.*(.*).*{.*\n/, "mouseIsPressed = (TAS.getInput('mousePressed') && TAS.playback)||(mouseIsPressed && !TAS.playback);\n");
+      temp = "if(TAS.playback){mouseX = TAS.getInput('mouseX');mouseY = TAS.getInput('mouseY');mouseIsPressed = TAS.getInput('mousePressed');}\n"+temp;
       temp = temp.slice(0, temp.length - 2);
       temp += "\n  TAS.update();";
       draw = function () {
@@ -314,7 +315,7 @@ function bind() {
       let temp = keyPressed.toString();
       temp = temp.replace(/function keyPressed.*(.*).*{.*\n/, "");
       temp = temp.slice(0, temp.length - 2);
-      temp += "\n  TAS.onKeyPressed();";
+      temp += "\n  TAS.onKeyPressed();\n}";
       keyPressed = function () {
         eval(temp);
       }
@@ -391,4 +392,52 @@ function deepClone(obj) {
     return item; // not object, not array, therefore primitive
   }
   return clone(obj);
+}
+
+p5.prototype._updateNextMouseCoords = function(e) {
+  const mousePos = getMousePos(
+    this._curElement.elt,
+    this.width,
+    this.height,
+    e
+  );
+  if(!TAS.playback){
+    this._setProperty('movedX', mousePos.x-this.pmouseX);
+    this._setProperty('movedY', mousePos.y-this.pmouseY);
+    this._setProperty('mouseX', mousePos.x);
+    this._setProperty('mouseY', mousePos.y);
+    this._setProperty('winMouseX', mousePos.winX);
+    this._setProperty('winMouseY', mousePos.winY);
+  }else{
+    this._setProperty('movedX', TAS.getInput("mouseX")-this.pmouseX);
+    this._setProperty('movedY', TAS.getInput("mouseY")-this.pmouseY);
+    this._setProperty('mouseX', TAS.getInput("mouseX"));
+    this._setProperty('mouseY', TAS.getInput("mouseY"));
+    this._setProperty('winMouseX', TAS.getInput("mouseX"));
+    this._setProperty('winMouseY', TAS.getInput("mouseY"));
+  }
+  // For first draw, make previous and next equal
+  this._updateMouseCoords();
+  this._setProperty('_hasMouseInteracted', true);
+};
+
+function getMousePos(canvas, w, h, evt) {
+  if (evt && !evt.clientX) {
+    // use touches if touch and not mouse
+    if (evt.touches) {
+      evt = evt.touches[0];
+    } else if (evt.changedTouches) {
+      evt = evt.changedTouches[0];
+    }
+  }
+  const rect = canvas.getBoundingClientRect();
+  const sx = canvas.scrollWidth / w || 1;
+  const sy = canvas.scrollHeight / h || 1;
+  return {
+    x: (evt.clientX - rect.left) / sx,
+    y: (evt.clientY - rect.top) / sy,
+    winX: evt.clientX,
+    winY: evt.clientY,
+    id: evt.identifier
+  };
 }

@@ -21,7 +21,7 @@ function setup() {
     highscore = getItem("chimpHS");
   }
   
-  createCanvas(1200, 500);
+  createCanvas(600, 500);
   for(i=0;i<len;i++){
   x.push(random(minX+size/2,width-size/2-(width-maxX)));
   y.push(random(minY+size/2,height-size/2-(height-maxY)));
@@ -58,43 +58,24 @@ function draw() {
     if(show){
     text(i+1,x[i],y[i]+size/10);
     }
-    if(!TAS.playback){
-      if(mouseX>x[i]-size/2&&mouseX<x[i]+size/2&&mouseY>y[i]-size/2&&mouseY<y[i]+size/2){
-        overlap = i;
-      }
-    }else{
-      if(TAS.getInput("mouseX")>x[i]-size/2&&TAS.getInput("mouseX")<x[i]+size/2&&TAS.getInput("mouseY")>y[i]-size/2&&TAS.getInput("mouseY")<y[i]+size/2){
-        overlap = i;
-      }
+    if(mouseX>x[i]-size/2&&mouseX<x[i]+size/2&&mouseY>y[i]-size/2&&mouseY<y[i]+size/2){
+      overlap = i;
     }
   }
   
-  if(((mouseIsPressed && !TAS.playback) || TAS.getInput('mouseIsPressed'))&&!mouseDown){
-    if(!TAS.playback){
-      if(mouseX>x[overlap]-size/2&&mouseX<x[overlap]+size/2&&mouseY>y[overlap]-size/2&&mouseY<y[overlap]+size/2){
-        if(overlap == curr){
-          score++;
-        x[overlap] = Infinity;
-        show = false;
-          curr++;
-        }else{
-          gameOver();
-        }
-      }
-    }else{
-      if(TAS.getInput("mouseX")>x[overlap]-size/2&&TAS.getInput("mouseX")<x[overlap]+size/2&&TAS.getInput("mouseY")>y[overlap]-size/2&&TAS.getInput("mouseY")<y[overlap]+size/2){
-        if(overlap == curr){
-          score++;
-          x[overlap] = Infinity;
-          show = false;
-          curr++;
-        }else{
-          gameOver();
-        }
+  if(mouseIsPressed){
+    if(mouseX>x[overlap]-size/2&&mouseX<x[overlap]+size/2&&mouseY>y[overlap]-size/2&&mouseY<y[overlap]+size/2){
+      if(overlap == curr){
+        score++;
+      x[overlap] = Infinity;
+      show = false;
+        curr++;
+      }else{
+        gameOver();
       }
     }
     mouseDown = true;
-    }else if(!((mouseIsPressed && !TAS.playback) || TAS.getInput('mouseIsPressed'))){
+    }else if(!((mouseIsPressed))){
       mouseDown = false;
     }
   
