@@ -58,6 +58,7 @@ class tas{
     }
   }
   onKeyPressed(){
+    console.log("Detected key press");
     if(keyIsDown(this.keybinds.SAVESTATE,true)){
       this.states.push(this.savestate());
       if(this.menuOpen){
@@ -108,7 +109,7 @@ class tas{
     }
   }
   savestate(load,name){
-    let state = JSON.parse(JSON.stringify(window,replacer));
+    let state = Object.assign([],window);
     state.rng = new this.prng(this.rng.mw,this.rng.mz);
     state.fc = fc;
     state.inputs = JSON.parse(JSON.stringify(this.inputs)).slice(0,fc-1);
@@ -134,13 +135,15 @@ class tas{
         }
       }
     }
-    for(let k of Object.keys(state)){
-      if(k !== 'rng' && k !== 'name' && k !== 'inputs' && exclusions.indexOf(k)===-1&&k!=="document" && k!=="customElements" && k!=="history" && k!=="closed" && k!=="frameElement"){
-        if(typeof state[k] === 'object'){
-          window[k] = JSON.parse(JSON.stringify(state[k]))
-        }else{
-          window[k] = state[k];
-        }
+    for(let k in (state)){
+      if(k !== 'rng' && k !== 'name' && k !== 'inputs' && exclusions.indexOf(k)===-1&&k!=="document" && k!=="customElements" && k!=="history" && k!=="closed" && k!=="frameElement" && k!=="p5" && k!=="performance" && !p5.instance[k]){
+        try{
+          if(typeof state[k] === 'object'){
+            window[k] = Object.assign([],state[k]);
+          }else{
+            window[k] = state[k];
+          }
+        }catch(e){}
       }
     }
     if(exclusions.indexOf('inputs')==-1){
@@ -286,9 +289,15 @@ if(isNaN(seed)){
 }
 TAS.rng = new TAS.prng(seed);
 
+let stateDiv = document.createElement("div");
+stateDiv.id = "states";
+
+setTimeout(()=>document.body.appendChild(stateDiv),1);
+
 function bind(){
   p5.prototype.random = function(){return TAS.rng.random.apply(TAS.rng,arguments)};
   if(p5.instance){
+    console.log("Binding");
     if(window.draw){
       let temp = draw.toString();
       temp = temp.replace(/function draw.*(.*).*{.*\n/,"");

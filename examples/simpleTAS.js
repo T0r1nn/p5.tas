@@ -1,15 +1,5 @@
-function preload(){
-  TAS.settings.PIANO_ROLL = true;
-  TAS.addVar('px');
-  TAS.addVar('py');
-  TAS.addVar('e');
-  TAS.addVar('diff');
-  TAS.addVar('score');
-}
-
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  TAS.setup();
   px = width/2;
   py = 3*height/4;
 }
@@ -23,36 +13,31 @@ var e = [];
 var score = 0;
 var diff = 30;
 
-function keyPressed(){
-  TAS.onKeyPressed();
-}
-
 function draw() {
-  let up = (keyIsDown(87)&&!TAS.playback)||TAS.getInput('u');
+  let up = (keyIsDown(87));
   score+=round(30/diff).toFixed(0)*(up?3:1);
   background(220);
   noStroke();
   if(fc%diff === 0){
-    e.push({x:TAS.rng.random()*width,y:-10});
+    e.push({x:random()*width,y:-10});
   }
   if(fc%900 === 0 && fc !== 0){
     print("Diff is going from "+diff+" to "+round(diff/2));
     diff/=2;
     diff = round(diff);
   }
-  if((keyIsDown(65) && !TAS.playback) || TAS.getInput('l')){
+  if((keyIsDown(65))){
     px-=moveSpeed;
   }
-  if((keyIsDown(68) && !TAS.playback) || TAS.getInput('r')){
+  if((keyIsDown(68))){
     px+=moveSpeed;
   }
   px = max(width/60,min(px,width-width/60))
-  TAS.addInputs({l:keyIsDown(65),u:keyIsDown(87),r:keyIsDown(68)});
   fill(0,255,0);
   circle(px,py,width/30);
   for(let i = 0; i < e.length; i++){
     let enemy = e[i];
-    enemy.y+=2*(((keyIsDown(87)&&!TAS.playback)||TAS.getInput('u'))?2:1);
+    enemy.y+=2*(((keyIsDown(87)))?2:1);
     if(enemy.y>=height){
       deleted.push(i);
     }
@@ -74,5 +59,4 @@ function draw() {
   fill(0);
   textAlign(LEFT,TOP);
   text(score,0,0);
-  TAS.update();
 }
