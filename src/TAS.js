@@ -3,6 +3,7 @@ class tas {
     this.inputs = [];
     this.slowdown = 2;
     this.pslowdown = 2;
+    this.keyCodes = [0,3,8,9,12,13,16,17,18,19,20,21,25,27,28,29,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,151,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,186,187,188,189,190,191,192,193,194,219,220,221,222,223,224,225,226,230,231,233,234,235,240,242,243,244,251,255];
     this.prevState = {};
     this.keybinds = {
       SAVESTATE: 75,
@@ -211,11 +212,6 @@ class tas {
   }
   getInputs() {
     let inputs = JSON.parse(JSON.stringify(p5.instance._downKeys));
-    for (let i = 0; i < 300; i++) {
-      if (inputs[i] === undefined) {
-        inputs[i] = keyIsDown(i);
-      }
-    }
     inputs["mouseX"] = mouseX;
     inputs["mouseY"] = mouseY;
     inputs["mousePressed"] = mouseIsPressed;
@@ -229,7 +225,11 @@ class tas {
   }
   getInput(input) {
     if (this.inputs[fc] && this.playback) {
-      return JSON.parse(this.inputs[fc])[input];
+      let val = JSON.parse(this.inputs[fc])[input];
+      if(val === undefined){
+        return false;
+      }
+      return val;
     } else {
       return false;
     }
@@ -277,7 +277,6 @@ TAS.prng = class {
 
     this.mz = mz;
     this.mw = mw;
-    frameCount = fc - 1;
   }
 }
 
@@ -304,7 +303,7 @@ function bind() {
     if (window.draw) {
       let temp = draw.toString();
       temp = temp.replace(/function draw.*(.*).*{.*\n/, "mouseIsPressed = (TAS.getInput('mousePressed') && TAS.playback)||(mouseIsPressed && !TAS.playback);\n");
-      temp = "if(TAS.playback){mouseX = TAS.getInput('mouseX');mouseY = TAS.getInput('mouseY');mouseIsPressed = TAS.getInput('mousePressed');}\n"+temp;
+      temp = "if(TAS.playback){mouseX = TAS.getInput('mouseX');mouseY = TAS.getInput('mouseY');mouseIsPressed = TAS.getInput('mousePressed');if(TAS.getInput('mousePressed')&&!JSON.parse(TAS.inputs[fc-1]).mousePressed){try{mousePressed()}catch(e){}}}\n  frameCount = fc;"+temp;
       temp = temp.slice(0, temp.length - 2);
       temp += "\n  TAS.update();";
       draw = function () {
@@ -440,4 +439,8 @@ function getMousePos(canvas, w, h, evt) {
     winY: evt.clientY,
     id: evt.identifier
   };
+}
+
+let keys = {
+
 }
