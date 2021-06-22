@@ -67,6 +67,7 @@ function draw() {
   }
   for(let i = 0; i < tetronimos.length; i++){
     if(!tetronimos[i].update){
+      console.log("fixing functions");
       tetronimos[i].update = new tetronimo([],true).update;
       tetronimos[i].combine = new tetronimo([],true).combine;
       tetronimos[i].checkRow = new tetronimo([],true).checkRow;

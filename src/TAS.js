@@ -294,6 +294,10 @@ stateDiv.id = "states";
 
 setTimeout(() => document.body.appendChild(stateDiv), 1);
 
+Math.random = function(){
+  return TAS.rng.random.apply(TAS.rng,arguments);
+}
+
 function bind() {
   p5.prototype.random = function () { return TAS.rng.random.apply(TAS.rng, arguments) };
   if (p5.instance) {
