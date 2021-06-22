@@ -98,7 +98,7 @@ class tas{
       this.resume();
     }
     if(keyIsDown(this.keybinds.SAVE_INPUTS)){
-      let str = ""
+      let str = `${seed}\n`
       this.inputs.forEach((v)=>(str+=v+"\n"));
       saveStrings([str],'inputs','tas');
     }
@@ -138,7 +138,7 @@ class tas{
     for(let k in (state)){
       if(k !== 'rng' && k !== 'name' && k !== 'inputs' && exclusions.indexOf(k)===-1&&k!=="document" && k!=="customElements" && k!=="history" && k!=="closed" && k!=="frameElement" && k!=="p5" && k!=="performance" && !p5.instance[k]){
         try{
-          if(typeof state[k] === 'object'){
+          if(typeof state[k] === 'object' || typeof state[k] === "object"){
             window[k] = Object.assign([],state[k]);
           }else{
             window[k] = state[k];
@@ -179,6 +179,7 @@ class tas{
   loadFile(file){
     if(this.settings.READ_FILE){
       this.inputs = loadStrings(file);
+      this.rng.random.mw = 1*this.inputs[0];
     }
   }
   preload(){
