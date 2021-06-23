@@ -11,7 +11,7 @@ The newest version of p5.tas is extremely easy to add. Just add the TAS.js to yo
 
 # Usage
 
-## Keybinds:
+## Default Keybinds:
 
 O: Playback current recording.
 
