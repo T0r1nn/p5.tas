@@ -1,11 +1,14 @@
+//Flatted for circular JSON stringifying and parsing
+self.Flatted=function(n){"use strict";
+/*! (c) 2020 Andrea Giammarchi */var t=JSON.parse,r=JSON.stringify,e=Object.keys,a=String,u="string",f={},i="object",c=function(n,t){return t},l=function(n){return n instanceof a?a(n):n},o=function(n,t){return typeof t===u?new a(t):t},s=function(n,t,r){var e=a(t.push(r)-1);return n.set(r,e),e};return n.parse=function(n,r){var u=t(n,o).map(l),s=u[0],p=r||c,v=typeof s===i&&s?function n(t,r,u,c){for(var l=[],o=e(u),s=o.length,p=0;p<s;p++){var v=o[p],y=u[v];if(y instanceof a){var g=t[y];typeof g!==i||r.has(g)?u[v]=c.call(u,v,g):(r.add(g),u[v]=f,l.push({k:v,a:[t,r,g,c]}))}else u[v]!==f&&(u[v]=c.call(u,v,y))}for(var h=l.length,d=0;d<h;d++){var w=l[d],O=w.k,S=w.a;u[O]=c.call(u,O,n.apply(null,S))}return u}(u,new Set,s,p):s;return p.call({"":v},"",v)},n.stringify=function(n,t,e){for(var a=t&&typeof t===i?function(n,r){return""===n||-1<t.indexOf(n)?r:void 0}:t||c,f=new Map,l=[],o=[],p=+s(f,l,a.call({"":n},"",n)),v=!p;p<l.length;)v=!0,o[p]=r(l[p++],y,e);return"["+o.join(",")+"]";function y(n,t){if(v)return v=!v,t;var r=a.call(this,n,t);switch(typeof r){case i:if(null===r)return r;case u:return f.get(r)||s(f,l,r)}return r}},n}({});
+
 class tas {
   constructor() {
     this.inputs = [];
     this.slowdown = 2;
     this.pslowdown = 2;
-    this.keyCodes = [0,3,8,9,12,13,16,17,18,19,20,21,25,27,28,29,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,151,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,186,187,188,189,190,191,192,193,194,219,220,221,222,223,224,225,226,230,231,233,234,235,240,242,243,244,251,255];
     this.prevState = {};
-    this.keybinds = {
+    this.keybinds = p5.prototype.getItem("TAS_keybinds")||{
       SAVESTATE: 75,
       LOADSTATE: 76,
       SLOWDOWN: 188,
@@ -14,8 +17,10 @@ class tas {
       PAUSE: 80,
       FRAME_ADVANCE: 186,
       SAVE_INPUTS: 191,
-      UNDO: 73
-    }
+      UNDO: 73,
+      SETTINGS: 77,
+      LOAD_INPUTS: 78
+    };
     this.settings = {
       READ_FILE: false
     }
@@ -85,7 +90,7 @@ class tas {
       this.slowdown = 1;
       this.playback = true;
     }
-    if (keyIsDown(this.keybinds.PAUSE)) {
+    if (keyIsDown(this.keybinds.PAUSE,true)) {
       if (this.paused) {
         this.paused = false;
         this.resume();
@@ -94,17 +99,33 @@ class tas {
         this.stop();
       }
     }
-    if (keyIsDown(this.keybinds.FRAME_ADVANCE) && this.paused) {
+    if (keyIsDown(this.keybinds.FRAME_ADVANCE,true) && this.paused) {
       this.resume();
     }
-    if (keyIsDown(this.keybinds.SAVE_INPUTS)) {
+    if (keyIsDown(this.keybinds.SAVE_INPUTS,true)) {
       let str = `${seed}\n`
       this.inputs.forEach((v) => (str += v + "\n"));
       saveStrings([str], 'inputs', 'tas');
     }
-    if (keyIsDown(this.keybinds.UNDO)) {
+    if (keyIsDown(this.keybinds.UNDO,true)) {
       if (this.inputs.length > 1) {
         this.loadstate(this.prevState);
+      }
+    }
+    if(keyIsDown(this.keybinds.SETTINGS,true)){
+      window.open("https://p5tas.tylerbalota.repl.co/settings/settings.html","_blank");
+    }
+    if(keyIsDown(this.keybinds.LOAD_INPUTS,true)){
+      if(document.getElementById('states').innerHTML === ""){
+        let inp = document.createElement('input');
+        inp.setAttribute('id','inp');
+        inp.setAttribute('type','file');
+        inp.oninput = function(){
+          document.getElementById('inp').files[0].text().then((a)=>(TAS.text = a));
+        }
+        document.getElementById('states').appendChild(inp);
+      }else{
+        document.getElementById('states').innerHTML = "";
       }
     }
   }
@@ -208,6 +229,17 @@ class tas {
     }
     if (this.paused) {
       this.stop();
+    }
+    if(this.text){
+      this.text = this.text.split('\n');
+      this.rng.mw = this.text[0]*1;
+      this.inputs = this.text.slice(1,this.text.length);
+      this.playback = true;
+      this.pslowdown = this.slowdown;
+      this.paused = false;
+      this.slowdown = 1;
+      this.loadstate(this.initialState,['inputs']);
+      this.text = undefined;
     }
   }
   getInputs() {
