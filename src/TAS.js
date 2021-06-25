@@ -113,7 +113,7 @@ class tas {
       }
     }
     if(keyIsDown(this.keybinds.SETTINGS,true)){
-      window.open("https://p5tas.tylerbalota.repl.co/settings/settings.html","_blank");
+      window.open("https://p5tas.awesomeness278.repl.co/settings/settings.html","_blank");
     }
     if(keyIsDown(this.keybinds.LOAD_INPUTS,true)){
       if(document.getElementById('states').innerHTML === ""){
