@@ -199,10 +199,8 @@ class tas {
       this.rng.random.mw = 1 * this.inputs[0];
     }
   }
-  preload() {
-    this.loadFile('inputs.tas');
-  }
   setup() {
+    this.cursor = loadImage("https://p5tas.awesomeness278.repl.co/src/assets/cursor.png")
     if (this.settings.READ_FILE) {
       this.inputs.splice(this.inputs.length - 2, 2);
       this.playback = true;
@@ -211,6 +209,7 @@ class tas {
     this.resume = () => (loop());
   }
   update() {
+    push();
     if (!this.initialState) {
       this.initialState = this.savestate(true, '');
       this.prevState = this.savestate(true, '');
@@ -237,6 +236,18 @@ class tas {
       this.loadstate(this.initialState,['inputs']);
       this.text = undefined;
     }
+    drawKeyboard(width/5*4,height-(width/5)/16 * 5,width/5);
+    if(this.playback){
+      //turn off mouse, draw fake mouse pointer
+      noCursor();
+      //495x897
+      let ratio = 20/897;
+      image(this.cursor,this.getInput("mouseX"),this.getInput("mouseY"),ratio*495,20);
+    }else{
+      //turn on mouse
+      cursor();
+    }
+    pop();
   }
   getInputs() {
     let inputs = JSON.parse(JSON.stringify(p5.instance._downKeys));
@@ -469,6 +480,92 @@ function getMousePos(canvas, w, h, evt) {
   };
 }
 
-let keys = {
+function drawKeyboard(x,y,w){
+  let keys = _downKeys;
+  let posKeys = Object.keys(keyEnum);
+  let size = w/16;
+  push();
+  textSize(size/3)
+  for(let i = 0; i < posKeys.length; i++){
+    let item = keyEnum[posKeys[i]];
+    fill(255-(!!keyIsDown(posKeys[i]))*255)
+    rect(x+item.x*size,y+item.y*size,size*item.w,size*item.h);
+    textAlign(CENTER,CENTER);
+    fill((!!keyIsDown(posKeys[i]))*255);
+    text(item.key,x+item.x*size,y+item.y*size,size*item.w,size*item.h);
+  }
+  pop();
+}
 
+let keyEnum = {
+  "192":{key:"`",x:0,y:0,w:1,h:1},
+  "9":{key:"TAB",x:0,y:1,w:1.25,h:1},
+  "20":{key:"CAPS",x:0,y:2,w:1.5,h:1},
+  "16":{key:"SHIFT",x:0,y:3,w:2,h:1},
+  "17":{key:"CTRL",x:0,y:4,w:1.25,h:1},
+  "??":{key:"FN",x:1.25,y:4,w:0.75,h:1},
+  "49":{key:"1",x:1,y:0,w:1,h:1},
+  "50":{key:"2",x:2,y:0,w:1,h:1},
+  "51":{key:"3",x:3,y:0,w:1,h:1},
+  "52":{key:"4",x:4,y:0,w:1,h:1},
+  "53":{key:"5",x:5,y:0,w:1,h:1},
+  "54":{key:"6",x:6,y:0,w:1,h:1},
+  "55":{key:"7",x:7,y:0,w:1,h:1},
+  "56":{key:"8",x:8,y:0,w:1,h:1},
+  "57":{key:"9",x:9,y:0,w:1,h:1},
+  "48":{key:"0",x:10,y:0,w:1,h:1},
+  "189":{key:"-",x:11,y:0,w:1,h:1},
+  "187":{key:"=",x:12,y:0,w:1,h:1},
+  "8":{key:"BACK",x:13,y:0,w:2,h:1},
+  "36":{key:"HM",x:15,y:0,w:1,h:1},
+  "65":{key:"a",x:1.5,y:2,w:1,h:1},
+  "66":{key:"b",x:6,y:3,w:1,h:1},
+  "67":{key:"c",x:4,y:3,w:1,h:1},
+  "68":{key:"d",x:3.5,y:2,w:1,h:1},
+  "69":{key:"e",x:3.25,y:1,w:1,h:1},
+  "70":{key:"f",x:4.5,y:2,w:1,h:1},
+  "71":{key:"g",x:5.5,y:2,w:1,h:1},
+  "72":{key:"h",x:6.5,y:2,w:1,h:1},
+  "73":{key:"i",x:8.25,y:1,w:1,h:1},
+  "74":{key:"j",x:7.5,y:2,w:1,h:1},
+  "75":{key:"k",x:8.5,y:2,w:1,h:1},
+  "76":{key:"l",x:9.5,y:2,w:1,h:1},
+  "77":{key:"m",x:8,y:3,w:1,h:1},
+  "78":{key:"n",x:7,y:3,w:1,h:1},
+  "79":{key:"o",x:9.25,y:1,w:1,h:1},
+  "80":{key:"p",x:10.25,y:1,w:1,h:1},
+  "81":{key:"q",x:1.25,y:1,w:1,h:1},
+  "82":{key:"r",x:4.25,y:1,w:1,h:1},
+  "83":{key:"s",x:2.5,y:2,w:1,h:1},
+  "84":{key:"t",x:5.25,y:1,w:1,h:1},
+  "85":{key:"u",x:7.25,y:1,w:1,h:1},
+  "86":{key:"v",x:5,y:3,w:1,h:1},
+  "87":{key:"w",x:2.25,y:1,w:1,h:1},
+  "88":{key:"x",x:3,y:3,w:1,h:1},
+  "89":{key:"y",x:6.25,y:1,w:1,h:1},
+  "90":{key:"z",x:2,y:3,w:1,h:1},
+  "91":{key:"WIN",x:2,y:4,w:1,h:1},
+  "18":{key:"ALT",x:3,y:4,w:1,h:1},
+  "32":{key:"SPACE",x:4,y:4,w:5,h:1},
+  "18,2":{key:"ALT",x:9,y:4,w:1,h:1},
+  "188":{key:",",x:9,y:3,w:1,h:1},
+  "190":{key:".",x:10,y:3,w:1,h:1},
+  "191":{key:"/",x:11,y:3,w:1,h:1},
+  "rightFn":{key:"FN",x:10,y:4,w:1,h:1},
+  "rightCtrl":{key:"CTL",x:11,y:4,w:1,h:1},
+  "37":{key:"",x:12,y:4,w:1,h:1},
+  "38":{key:"",x:13,y:4,w:1,h:0.5},
+  "40":{key:"",x:13,y:4.5,w:1,h:0.5},
+  "39":{key:"",x:14,y:4,w:1,h:1},
+  "rightShift":{key:"SHIFT",x:12,y:3,w:3,h:1},
+  "186":{key:";",x:10.5,y:2,w:1,h:1},
+  "222":{key:"'",x:11.5,y:2,w:1,h:1},
+  "13":{key:"ENTER",x:12.5,y:2,w:2.5,h:1},
+  "219":{key:"[",x:11.25,y:1,w:1,h:1},
+  "221":{key:"]",x:12.25,y:1,w:1,h:1},
+  "220":{key:"\\",x:13.25,y:1,w:1.75,h:1},
+  "33":{key:"PGU",x:15,y:1,w:1,h:1},
+  "34":{key:"PGD",x:15,y:2,w:1,h:1},
+  "35":{key:"END",x:15,y:3,w:1,h:1},
+  "44":{key:"PRT",x:15,y:4,w:1,h:1}
 }
