@@ -450,7 +450,7 @@ function deepClone(obj) {
         }
         try{
         if(item.__proto__){
-          cloneObject["__proto__"] = item.__proto__;
+          cloneObject["__proto__"] = deepClone(item.__proto__);
         }
         }catch(e){}
         return cloneObject;
