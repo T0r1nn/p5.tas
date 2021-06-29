@@ -29,6 +29,7 @@ class tas {
     this.vars = [];
     this.paused = false;
     this.config = {};
+    this.ignoreKeys = ['name','status','origin','closed','length','scrollY','innerWidth','innerHeight','scrollX','pageXOffset','pageYOffset','screenX','screenY','outerWidth','outerHeight','devicePixelRatio','screenLeft','screenTop','defaultStatus','defaultstatus','isSecureContext','originAgentCluster','crossOriginIsolated','VERSION','P2D','WEBGL','ARROW','CROSS','HAND','MOVE','TEXT','WAIT','HALF_PI','PI','QUARTER_PI','TAU','TWO_PI','DEGREES','RADIANS','DEG_TO_RAD','RAD_TO_DEG','CORNER','CORNERS','RADIUS','RIGHT','LEFT','CENTER','TOP','BOTTOM','BASELINE','POINTS','LINES','LINE_STRIP','LINE_LOOP','TRIANGLES','TRIANGLE_FAN','TRIANGLE_STRIP','QUADS','QUAD_STRIP','TESS','CLOSE','OPEN','CHORD','PIE','PROJECT','SQUARE','ROUND','BEVEL','MITER','RGB','HSB','HSL','AUTO','ALT','BACKSPACE','CONTROL','DELETE','DOWN_ARROW','ENTER','ESCAPE','LEFT_ARROW','OPTION','RETURN','RIGHT_ARROW','SHIFT','TAB','UP_ARROW','BLEND','REMOVE','ADD','DARKEST','LIGHTEST','PERSISTENT','TEMPORARY','_loadingScreenId','_gaussian_previous','_millisStart','_colorMode','_curveDetail','_bezierDetail','_bezierDetail','_loop','_isGlobal','_preloadCount','_requestAnimId','_userNode','_pixelDensity','_setupDone','_angleMode','_pmouseWheelDeltaY','_mouseWheelDeltaY','pwinMouseY','pwinMouseX','winMouseY','winMouseX','_hasMouseInteracted','turnAxis','pRotateDirectionZ','pRotateDirectionY','pRotateDirectionY','pRotateDirectionX','pRotationZ','pRotationY','pRotationX','pAccelerationZ','pAccelerationY','pAccelerationX','accelerationZ','accelerationY','accelerationX','deviceOrientation','AUDIO','VIDEO','_validateParameters','windowHeight','windowWidth','displayWidth','_targetFrameRate','_lastFrameTime','_frameRate','FALLBACK','LABEL','AXES','GRID','_DEFAULT_FILL','_DEFAULT_STROKE','PORTRAIT','LANDSCAPE','MIRROR','CLAMP','REPEAT','NEAREST','IMAGE','IMMEDIATE','TEXTURE','FILL','STROKE','CURVE','BEZIER','QUADRATIC','LINEAR','_CTX_MIDDLE','_DEFAULT_LEADMULT','_DEFAULT_TEXT_FILL','BOLDITALIC','BOLD','ITALIC','NORMAL','BLUR','ERODE','DILATE','POSTERIZE','DIFFERENCE','SUBTRACT','EXCLUSION','MULTIPLY','SCREEN','REPLACE','OVERLAY','HARD_LIGHT','SOFT_LIGHT','DODGE','BURN','THRESHOLD','GRAY','OPAQUE','INVERT'];
   }
   configureInput(inputName, settings) {
     this.config[inputName] = settings;
@@ -248,6 +249,14 @@ class tas {
       cursor();
     }
     pop();
+    if(document.getElementsByTagName("p").length > 0){
+      let tag = document.getElementsByTagName('p')[0];
+      tag.innerHTML = this.memoryWatch(window);
+    }else{
+      let p = document.createElement("p");
+      p.innerHTML = this.memoryWatch(window);
+      document.body.appendChild(p);
+    }
   }
   getInputs() {
     let inputs = JSON.parse(JSON.stringify(p5.instance._downKeys));
@@ -272,6 +281,20 @@ class tas {
     } else {
       return false;
     }
+  }
+  memoryWatch(obj){
+    let watch = "";
+    for(let key in obj){
+      if(typeof window[key] !== "function"){
+        if(this.ignoreKeys.indexOf(key) === -1){
+          if(typeof window[key] === "object"){
+          }else{
+            watch += key+": "+window[key]+`<button onclick='TAS.ignoreKeys.push("${key}");' style='right:0px;position:absolute;'>X</button><br/>`;
+          }
+        }
+      }
+    }
+    return watch;
   }
 }
 
@@ -319,6 +342,11 @@ TAS.prng = class {
   }
 }
 
+window.addEventListener('keydown', function(e) {
+  if(e.keyCode == 32 && e.target == document.body) {
+    e.preventDefault();
+  }
+});
 
 var fc = 0;
 let seed = prompt("Input any number") * 1;
@@ -339,6 +367,23 @@ Math.random = function(){
 function bind() {
   p5.prototype.random = function () { return TAS.rng.random.apply(TAS.rng, arguments) };
   if (p5.instance) {
+    let style = document.createElement("style");
+    let css = `
+body::-webkit-scrollbar {
+  display: none;
+}
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+    `
+    if (style.styleSheet) {
+      style.styleSheet.cssText = css;
+    } else {
+      style.appendChild(document.createTextNode(css));
+    }
+
+    document.getElementsByTagName('head')[0].appendChild(style);
     if (window.draw) {
       let temp = draw.toString();
       temp = temp.replace(/function draw.*(.*).*{.*\n/, "mouseIsPressed = (TAS.getInput('mousePressed') && TAS.playback)||(mouseIsPressed && !TAS.playback);\n");
