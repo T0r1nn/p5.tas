@@ -443,16 +443,24 @@ function deepClone(obj) {
         visitedNodes.push(item);
         var cloneObject = {};
         clonedCopy.push(cloneObject);
-        for (var i in item) {
-          if (item.hasOwnProperty(i)) {
-            cloneObject[i] = clone(item[i]);
+        if(item){
+          if(item.cloneNode){
+            cloneObject = item.cloneNode(true);
+          }else{
+            for (var i in item) {
+              if (item.hasOwnProperty(i)) {
+                try{
+                  cloneObject[i] = clone(item[i]);
+                }catch(e){
+                  cloneObject[i] = item[i];
+                }
+              }
+            }
+            if(item.__proto__){
+              cloneObject.__proto__ = item.__proto__;
+            }
           }
         }
-        try{
-        if(item.__proto__){
-          cloneObject["__proto__"] = deepClone(item.__proto__);
-        }
-        }catch(e){}
         return cloneObject;
       } else {
         return clonedCopy[visitedNodes.indexOf(item)];
